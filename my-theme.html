@@ -134,6 +134,26 @@
                     } of posts) note && resized.observe(post);
                 spill(), update()
             }
+
+            // Background: tells the CSS where the mouse is, so the hexagons
+            // under it can blush. Only for devices with a real mouse.
+            if (matchMedia("(hover: hover)").matches) {
+                const root = document.documentElement;
+                let x = 0,
+                    y = 0,
+                    moved = !1;
+                addEventListener("pointermove", e => {
+                    x = e.clientX, y = e.clientY, moved || (moved = !0, requestAnimationFrame(() => {
+                        moved = !1, root.style.setProperty("--mx", px(x)), root.style.setProperty("--my", px(y)), root.dataset.mouse = ""
+                    }))
+                }, {
+                    passive: !0
+                });
+                // The mouse left the window: let the blush fade away.
+                document.addEventListener("mouseout", e => {
+                    e.relatedTarget || delete root.dataset.mouse
+                })
+            }
 </script><meta charset="utf-8"><link rel="preload" href="https://cdn.jsdelivr.net/gh/toasthaste/Tumblr-Theme-Opus@main/source-serif-4-latin-standard-normal.BpEBLj1O.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="https://cdn.jsdelivr.net/gh/toasthaste/Tumblr-Theme-Opus@main/source-serif-4-latin-standard-italic.BOLXpvkj.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="https://cdn.jsdelivr.net/gh/toasthaste/Tumblr-Theme-Opus@main/cormorant-latin-wght-normal.D7itQ8IL.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="https://cdn.jsdelivr.net/gh/toasthaste/Tumblr-Theme-Opus@main/cormorant-latin-wght-italic.BMf3v8-7.woff2" as="font" type="font/woff2" crossorigin><meta name="color-scheme" content="light dark"><meta name="if:Menu on right" content="0"><link rel="icon" href="{Favicon}"><meta name="viewport" content="width=device-width"><title>{Title}{block:PostSummary} — {PostSummary}{/block:PostSummary}</title><meta name="author" content="{Title}"><meta name="description" content="{MetaDescription}">
         <link rel="alternate" type="application/rss+xml" href="{RSS}">
         <meta name="theme-hash" content="1e0809064bcd4bde">
@@ -2730,6 +2750,134 @@
                 [data-menu=right] .toc-sidebar .toc-list li>a {
                     justify-self: left;
                     text-align: left
+                }
+            }
+
+            /* ---- Background: tiled hexagons that blush wherever the mouse
+               is. Only on wide screens with a mouse; elsewhere the page keeps
+               its plain background. ---- */
+
+            /* The colours. --hex-size is how wide one hexagon is. */
+            :root {
+                --hex-size: 18px;
+                --blush-radius: 140px;
+                --hex-fill: #e3c27e;
+                --hex-line: #f6efe0;
+                --hex-blush: rgba(205, 85, 70, .45);
+                --hex-line-blush: #9a5a48
+            }
+
+            @media(prefers-color-scheme:dark) {
+                :root {
+                    --hex-fill: #4a3a22;
+                    --hex-line: #5e4b30;
+                    --hex-blush: rgba(190, 70, 60, .4);
+                    --hex-line-blush: #2b1d16
+                }
+            }
+
+            html:has(#theme-toggle:checked),
+            html[data-theme-checked] {
+                --hex-fill: #4a3a22;
+                --hex-line: #5e4b30;
+                --hex-blush: rgba(190, 70, 60, .4);
+                --hex-line-blush: #2b1d16
+            }
+
+            @media(prefers-color-scheme:dark) {
+
+                html:has(#theme-toggle:checked),
+                html[data-theme-checked] {
+                    --hex-fill: #e3c27e;
+                    --hex-line: #f6efe0;
+                    --hex-blush: rgba(205, 85, 70, .45);
+                    --hex-line-blush: #9a5a48
+                }
+            }
+
+            /* How strongly the blush shows: 1 while the mouse is over the
+               page, fading to 0 when it leaves. */
+            @property --blush {
+                syntax: "<number>";
+                inherits: true;
+                initial-value: 0;
+            }
+
+            @media screen and (min-width:60rem) and (hover:hover) {
+                html {
+                    background: var(--hex-fill);
+                    transition: --blush .4s
+                }
+
+                html[data-mouse] {
+                    --blush: 1
+                }
+
+                body {
+                    background-color: transparent
+                }
+
+                /* The blush on the hexagons themselves... */
+                body:before,
+                /* ...and the dividing lines, darker near the mouse */
+                body:after {
+                    content: "";
+                    position: fixed;
+                    inset: 0;
+                    z-index: -1;
+                    pointer-events: none
+                }
+
+                body:before {
+                    background: radial-gradient(circle calc(var(--blush-radius) * var(--blush) + 1px) at var(--mx, 50%) var(--my, 50%), var(--hex-blush), transparent)
+                }
+
+                body:after {
+                    background: radial-gradient(circle calc(var(--blush-radius) * var(--blush) + 1px) at var(--mx, 50%) var(--my, 50%), var(--hex-line-blush), transparent), var(--hex-line);
+                    mask: url("data:image/svg+xml,%3Csvg xmlns='http%3A//www.w3.org/2000/svg' viewBox='0 0 3 1.7321' preserveAspectRatio='none'%3E%3Cpath d='M-0.5 0L0.5 0M-0.5 1.732L0.5 1.732M0.5 0L1 -0.866M0.5 0L1 0.866M0.5 1.732L1 0.866M0.5 1.732L1 2.598M1 -0.866L2 -0.866M1 0.866L2 0.866M1 2.598L2 2.598M2 -0.866L2.5 0M2 0.866L2.5 0M2 0.866L2.5 1.732M2 2.598L2.5 1.732M2.5 0L3.5 0M2.5 1.732L3.5 1.732' fill='none' stroke='%23000' stroke-width='.16' stroke-linecap='round'/%3E%3C/svg%3E") 0 0/calc(var(--hex-size) * 1.5) calc(var(--hex-size) * .8660254) repeat
+                }
+
+                /* Solid backings so text stays readable over the hexagons.
+                   (The tag bubbles already have their own.) */
+                article {
+                    background-color: var(--color-background)
+                }
+
+                /* A panel drawn around these without changing their size */
+                .sidebar,
+                main.feed>header.front-matter,
+                .pagination {
+                    background: var(--color-background);
+                    box-shadow: 0 0 0 1rem var(--color-background), 0 0 0 calc(1rem + 1px) var(--color-border)
+                }
+
+                article:after {
+                    padding: .35rem .15rem;
+                    background: var(--color-background);
+                    box-shadow: 0 0 0 1px var(--color-border)
+                }
+            }
+
+            /* With the menu in the margin, its panel is padded instead, and
+               kept clear of the date strips beside the posts */
+            @media screen and (min-width:80rem) and (hover:hover) {
+                .sidebar {
+                    padding: 1rem 1.75rem 1rem 1rem;
+                    margin-right: .75rem;
+                    max-height: calc(100dvh - 6rem);
+                    box-shadow: 0 0 0 1px var(--color-border)
+                }
+
+                [data-menu=right] .sidebar {
+                    padding: 1rem 1rem 1rem 1.75rem;
+                    margin-right: 0;
+                    margin-left: .75rem
+                }
+            }
+
+            @media(prefers-reduced-motion:reduce) {
+                html[data-mouse] {
+                    --blush: 0
                 }
             }
         </style>
