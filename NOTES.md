@@ -44,6 +44,17 @@ The test blog is a sideblog, so saving there is always safe. The poastbot accoun
 - Splitting tags into a side bubble plus a linked continuation under the post (comic neck): it reads leftward when tags are on the right.
 - Height caps or click-to-expand for long tag lists: **Remi strongly dislikes these.** Remi writes very long, rambly tags, so those must be handled gracefully.
 
+## Shelved: hexagon background (git tag `hexagon-background`)
+Built 2026-10-12/13, then shelved by Remi with a possible return later. Restore it with `git show hexagon-background:my-theme.html`.
+- **What it was:** small tiled hexagons (subdued yellow-orange, off-white lines) on a `<canvas>` behind the page, made by the script. Near the mouse, each hexagon gets one flat, blended colour by distance: redder bodies, darker lines.
+- **Knobs:** `BLUSH_RADIUS` (Remi set 30) and `BLUSH_STEPS` sit at the top of the script; colours and `--hex-size` are in the CSS.
+- **Performance:** it redraws only the patch around the mouse, and costs nothing while the mouse is still.
+- **Text backings it needed:** solid panels behind posts, the menu and date list (separately!), the blog header, pagination and the date strips.
+- **Lessons:**
+  - A smooth CSS radial glow looked "airbrushed". Per-hexagon flat colour fixed that.
+  - One panel around the whole sidebar fused the menu and dates, which Remi disliked.
+- **Ideas not done:** fisheye enlargement under the cursor, and Customize-menu colour options.
+
 ## Ideas / to-do (not started)
 - Replace her flower logo; possibly swap fonts and images (Remi plans a broader visual overhaul).
 - Long reblog chains (more than about 25) fall back to Tumblr's old nested style on most themes. Low priority; worth poking at sometime.
