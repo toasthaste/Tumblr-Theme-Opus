@@ -46,4 +46,10 @@ The test blog is a sideblog, so saving there is always safe. The poastbot accoun
 - Replace her flower logo; possibly swap fonts and images (Remi plans a broader visual overhaul).
 - Long reblog chains (more than about 25) fall back to Tumblr's old nested style on most themes. Low priority; worth poking at sometime.
 - Remi might eventually want date/title labels and tags arranged differently. Undecided.
-- There's no version history (not a git repo); older versions only exist as live saves on Tumblr. Consider `git init` here if that becomes a worry.
+- Optional: back the git history up to GitHub (the existing repo is public, so a private repo might suit better).
+
+## Version history (git)
+This folder is a local git repo (set up 2026-10-12, branch `main`, nothing pushed anywhere). Remi doesn't use git; Claude does.
+- **Commit after each version Remi pastes and is happy with**, with a plain-English message saying what changed. Commit `NOTES.md` updates alongside.
+- Repo-local settings: `user.name Remi`, `user.email remi@local` (a placeholder, so no real email lands in history if it's ever pushed publicly), `core.autocrlf false` (keeps line endings exactly as written, which the verbatim live-page check relies on).
+- `.gitignore` skips the `upload batch`/`upload missing` folders and the generated `preview/index.html`.
