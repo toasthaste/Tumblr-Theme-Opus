@@ -2562,7 +2562,7 @@
                     background: var(--color-background);
                     font-family: var(--font-prose);
                     font-size: 1rem;
-                    line-height: 1.35;
+                    line-height: 1.5;
                     text-align: left;
                     pointer-events: auto
                 }
@@ -2571,8 +2571,17 @@
                     margin-left: auto
                 }
 
-                .note-tags li {
-                    padding-block: .15rem
+                /* Tags flow one after another like a paragraph, a long tag
+                   breaking wherever the line runs out */
+                .note-tags li,
+                .spill-tags li {
+                    display: inline;
+                    overflow-wrap: anywhere
+                }
+
+                .note-tags li:not(:last-child),
+                .spill-tags li:not(:last-child) {
+                    margin-right: .5em
                 }
 
                 .note-tags a {
@@ -2627,10 +2636,6 @@
                 }
 
                 .spill-tags {
-                    display: flex;
-                    flex-wrap: wrap;
-                    column-gap: 1.1rem;
-                    row-gap: .2rem;
                     margin: 0;
                     padding: .5rem .9rem;
                     list-style: none;
@@ -2639,13 +2644,8 @@
                     background: var(--color-background);
                     font-family: var(--font-prose);
                     font-size: 1rem;
-                    line-height: 1.35;
+                    line-height: 1.5;
                     text-align: left
-                }
-
-                .spill-tags li {
-                    min-width: 0;
-                    overflow-wrap: anywhere
                 }
 
                 .spill-tags a {
