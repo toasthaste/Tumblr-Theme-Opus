@@ -68,21 +68,87 @@
                 }
             }
 
+            // In the bubble under a post: a tag of several words that would
+            // start in the last half of a line and get split across two starts
+            // on a fresh line instead; and a tag long enough to wrap gets a
+            // wider gap after it. (Tag by tag in order, as each change moves
+            // the tags after it.)
+            function tidyLongTags(list) {
+                const tags = [...list.children];
+                for (const li of tags) delete li.dataset.long, delete li.dataset.fresh;
+                const box = list.getBoundingClientRect(),
+                    css = getComputedStyle(list),
+                    left = box.left + list.clientLeft + parseFloat(css.paddingLeft),
+                    right = box.right - list.clientLeft - parseFloat(css.paddingRight),
+                    // (only lines of text count, not a line break)
+                    lines = li => [...li.getClientRects()].filter(r => r.width > 1 && r.height > 12);
+                for (const li of tags) {
+                    let l = lines(li);
+                    l.length > 1 && l[0].left - left > (right - left) / 2 && /\S\s+\S/.test(li.textContent.trim()) && (li.dataset.fresh = "", l = lines(li));
+                    l.length > 1 && (li.dataset.long = "")
+                }
+            }
+
             // Shows each post's tags beside it if they fit, or else all of them
             // in the bubble under the post.
+            //
+            // A side bubble taller than its post may reach into the gaps above
+            // and below it. Only those bubbles compete for a gap: one alone
+            // gets all of it; two share, each getting what it needs if they
+            // both fit, or else half each. A bubble that doesn't fit even so
+            // sends its tags under the post and frees its gaps for the others.
             function spill() {
-                for (const {
+                const feed = document.querySelector("main.feed"),
+                    // (a few px of every gap stay free, so bubbles never touch)
+                    gap = feed ? parseFloat(getComputedStyle(feed).rowGap) - 6 : 0,
+                    reach = (p, side, px) => p.note.parentElement.style.setProperty("--reach-" + side, px + "px");
+                let claim = [];
+                for (const p of posts) {
+                    const {
+                        post,
                         note,
                         extra
-                    } of posts) {
+                    } = p;
                     if (!note) continue;
                     const box = note.parentElement,
                         wrap = extra.parentElement;
                     note.append(...extra.children);
-                    delete box.dataset.spill, delete wrap.dataset.spill;
+                    delete box.dataset.spill, delete wrap.dataset.spill, reach(p, "up", 0), reach(p, "down", 0);
                     // (Notes are hidden on narrow screens; nothing to fit.)
-                    note.offsetParent && note.offsetHeight > box.clientHeight && (extra.append(...note.children), box.dataset.spill = wrap.dataset.spill = "below")
+                    if (!note.offsetParent) continue;
+                    p.need = note.offsetHeight - box.clientHeight;
+                    // is there a gap above / below this post at all?
+                    p.above = !!post.previousElementSibling, p.below = !!post.nextElementSibling?.nextElementSibling;
+                    p.need > 0 && claim.push(p)
                 }
+                // How much of the gap below "a" goes to a, with "b" the post
+                // after it (if b is also competing).
+                const share = (a, b) => {
+                    if (!b) return gap;
+                    const wa = a.need / 2,
+                        wb = b.need / 2;
+                    return wa <= gap / 2 ? wa : wb <= gap / 2 ? gap - wb : gap / 2
+                };
+                for (;;) {
+                    const failed = [];
+                    for (const p of claim) {
+                        const i = posts.indexOf(p),
+                            prev = claim.includes(posts[i - 1]) ? posts[i - 1] : null,
+                            next = claim.includes(posts[i + 1]) ? posts[i + 1] : null;
+                        p.up = p.above ? gap - (prev ? share(prev, p) : 0) : 0, p.down = p.below ? share(p, next) : 0;
+                        p.up + p.down < p.need && failed.push(p)
+                    }
+                    if (!failed.length) break;
+                    claim = claim.filter(p => !failed.includes(p));
+                    for (const {
+                            note,
+                            extra
+                        } of failed) {
+                        extra.append(...note.children), note.parentElement.dataset.spill = extra.parentElement.dataset.spill = "below";
+                        tidyLongTags(extra)
+                    }
+                }
+                for (const p of claim) reach(p, "up", p.up), reach(p, "down", p.down)
             }
 
             // Highlights the dates of the posts on screen, and scrolls the
@@ -2535,8 +2601,9 @@
                     flex-direction: column;
                     justify-content: center;
                     position: absolute;
-                    top: 0;
-                    bottom: 0;
+                    /* (the script lets a tall bubble reach into the gaps) */
+                    top: calc(-1 * var(--reach-up, 0px));
+                    bottom: calc(-1 * var(--reach-down, 0px));
                     left: calc(100% + var(--note-gap));
                     width: var(--note-width);
                     pointer-events: none
@@ -2582,6 +2649,25 @@
                 .note-tags li:not(:last-child),
                 .spill-tags li:not(:last-child) {
                     margin-right: .5em
+                }
+
+                /* Tumblr removes the spaces between tags, so mark where a line
+                   may break between them (an invisible zero-width space) */
+                .note-tags li:not(:last-child):after,
+                .spill-tags li:not(:last-child):after {
+                    content: "\200B"
+                }
+
+                /* Under a post, a tag long enough to wrap gets a wider gap
+                   after it, and a tag the script marks "fresh" starts on a
+                   new line */
+                .spill-tags li[data-long]:not(:last-child) {
+                    margin-right: 1.5em
+                }
+
+                .spill-tags li[data-fresh]:before {
+                    content: "";
+                    display: block
                 }
 
                 .note-tags a {

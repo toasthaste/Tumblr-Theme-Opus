@@ -17,6 +17,8 @@ Remi's own Tumblr theme, started 2026-10-07 from a friend's theme (with her perm
 
 Tumblr refuses to save a theme containing a literal `http://` anywhere, even inside an inline SVG's `xmlns`. Write it as `http%3A//` in data URIs. Check before handing over: `grep -c "http://" my-theme.html` should print 0.
 
+Tumblr strips the whitespace between tags such as `</li><li>` when it renders the page, but the preview snapshot still has it. So inline-flowing items get no break points live: the tag bubbles add an invisible `\200B` after each tag for this. When testing inline layout in the preview, remove the whitespace text nodes first.
+
 The test blog is a sideblog, so saving there is always safe. The poastbot account (an admin of it) is signed in to Claude's built-in browser pane; use it only for themes-test-blog. Remi has OK'd Claude making test posts there. The new-post editor defaults to posting as poastbot, so **check the blog picker before every post**.
 
 ## Local preview
