@@ -175,9 +175,23 @@
                 })
             }
 
+            // Fades the Newer/Older buttons while a tag bubble passes behind
+            // one (so it can be read and clicked).
+            const pageButtons = [...document.querySelectorAll(".pagination a")];
+
+            function fadeButtons() {
+                if (!pageButtons.length) return;
+                const bubbles = [...document.querySelectorAll(".note-tags, .note-spill[data-spill] .spill-tags")].filter(b => b.offsetParent && b.children.length).map(b => b.getBoundingClientRect());
+                for (const button of pageButtons) {
+                    const r = button.getBoundingClientRect(),
+                        near = 6;
+                    button.toggleAttribute("data-covered", bubbles.some(e => e.left < r.right + near && e.right > r.left - near && e.top < r.bottom + near && e.bottom > r.top - near))
+                }
+            }
+
             let queued = !1;
             const update = () => {
-                    queued = !1, highlight(), aimTails()
+                    queued = !1, highlight(), aimTails(), fadeButtons()
                 },
                 queueUpdate = () => queued || (queued = !0, requestAnimationFrame(update));
 
@@ -2066,23 +2080,6 @@
                     --margin-gap: .2rem
                 }
 
-                article:after {
-                    content: attr(data-rail)/"";
-                    position: absolute;
-                    top: 0;
-                    left: calc(100% + var(--tick-reach) + var(--margin-gap));
-                    writing-mode: vertical-rl;
-                    text-orientation: upright;
-                    white-space: nowrap;
-                    pointer-events: none;
-                    font-family: var(--font-mono);
-                    font-size: .6rem;
-                    letter-spacing: .1em;
-                    text-transform: uppercase;
-                    color: var(--color-signal);
-                    font-size: .9rem;
-                    line-height: 1
-                }
             }
 
             @property --toc-fade-top {
@@ -2774,18 +2771,6 @@
                     scale: -1 1
                 }
 
-                /* The date strip down each post goes on the menu's side, out
-                   of the notes' way */
-                article:after {
-                    left: auto;
-                    right: calc(100% + var(--tick-reach) + var(--margin-gap))
-                }
-
-                [data-menu=right] article:after {
-                    right: auto;
-                    left: calc(100% + var(--tick-reach) + var(--margin-gap))
-                }
-
                 /* ---- "Menu on right" option: the menu and date list move
                    to the right margin ---- */
 
@@ -2861,9 +2846,94 @@
                 letter-spacing: .08em;
                 display: flex;
                 flex-wrap: wrap;
-                gap: 0 1.5ch;
+                align-items: center;
+                gap: .25rem 1.5ch;
                 margin-top: 1.5rem;
+                padding-top: .6rem;
+                border-top: 1px solid var(--color-border);
                 color: var(--color-muted)
+            }
+
+            /* Tumblr's own reblog and like buttons, at the right */
+            .post-actions[data-astro-cid-ngnc2rhs] {
+                display: flex;
+                align-items: center;
+                gap: .75rem;
+                margin-left: auto
+            }
+
+            /* ---- The row at the top of each post: date (links to the
+               post), who it was reblogged from, and a link to the post on
+               tumblr.com ---- */
+            .post-meta[data-astro-cid-ngnc2rhs] {
+                font-family: var(--font-prose);
+                font-variant-caps: all-small-caps;
+                font-size: .9rem;
+                letter-spacing: .08em;
+                color: var(--color-muted);
+                margin: -1rem 0 1.75rem;
+                padding-bottom: .6rem;
+                border-bottom: 1px solid var(--color-border)
+            }
+
+            .meta-row[data-astro-cid-ngnc2rhs] {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: .25rem 1.25ch
+            }
+
+            .post-meta[data-astro-cid-ngnc2rhs] a {
+                color: inherit;
+                text-decoration-line: none
+            }
+
+            .post-meta[data-astro-cid-ngnc2rhs] a:hover {
+                color: var(--color-text);
+                text-decoration-line: underline
+            }
+
+            .post-meta[data-astro-cid-ngnc2rhs] svg {
+                width: 1.1em;
+                height: 1.1em;
+                flex: none;
+                fill: currentColor
+            }
+
+            .reblogged-from[data-astro-cid-ngnc2rhs],
+            .reblogged-from[data-astro-cid-ngnc2rhs] a {
+                display: inline-flex;
+                align-items: center;
+                gap: .6ch
+            }
+
+            .reblogged-from[data-astro-cid-ngnc2rhs] img {
+                width: 1.5rem;
+                height: 1.5rem;
+                border-radius: 50%
+            }
+
+            .on-tumblr[data-astro-cid-ngnc2rhs] {
+                display: inline-flex;
+                margin-left: auto;
+                padding: .2rem
+            }
+
+            /* The pinned post: a label on top, and a frame in the accent
+               colour */
+            .pinned[data-astro-cid-ngnc2rhs] {
+                display: flex;
+                align-items: center;
+                gap: .6ch;
+                margin: 0 0 .4rem;
+                color: var(--color-signal)
+            }
+
+            @media screen and (min-width:60rem) {
+                .post[data-astro-cid-ngnc2rhs]:has(.pinned) {
+                    border-color: var(--color-signal);
+                    box-shadow: inset 0 0 0 3px var(--color-background), inset 0 0 0 4px var(--color-signal)
+                }
             }
 
             .post-foot[data-astro-cid-ngnc2rhs] a[data-astro-cid-ngnc2rhs] {
@@ -2919,7 +2989,72 @@
                 font-size: .95rem;
                 letter-spacing: .08em;
                 display: flex;
-                justify-content: space-between
+                justify-content: space-between;
+                /* stays at the bottom of the screen while scrolling */
+                position: sticky;
+                bottom: 0;
+                z-index: 3;
+                padding: .5rem 1rem;
+                border: 1px solid var(--color-border);
+                border-bottom: 0;
+                border-radius: .5rem .5rem 0 0;
+                background: var(--color-background)
+            }
+
+            .pagination[data-astro-cid-4b74ji4i] [rel=prev]:before {
+                content: "← "
+            }
+
+            .pagination[data-astro-cid-4b74ji4i] [rel=next]:after {
+                content: " →"
+            }
+
+            /* On wide screens: two buttons just outside the bottom corners of
+               the posts column, and the tag bubbles and date list stop a bit
+               higher to make room for them */
+            @media screen and (min-width:80rem) {
+                .pagination[data-astro-cid-4b74ji4i] {
+                    height: 0;
+                    bottom: 1rem;
+                    padding: 0;
+                    border: 0;
+                    background: none
+                }
+
+                .pagination[data-astro-cid-4b74ji4i] a[data-astro-cid-4b74ji4i] {
+                    position: absolute;
+                    bottom: 0;
+                    padding: .3rem .9rem;
+                    border: 1px solid var(--color-border);
+                    border-radius: 999px;
+                    background: var(--color-background);
+                    white-space: nowrap
+                }
+
+                .pagination[data-astro-cid-4b74ji4i] [rel=prev] {
+                    right: calc(100% + 1rem)
+                }
+
+                .pagination[data-astro-cid-4b74ji4i] [rel=next] {
+                    left: calc(100% + 1rem)
+                }
+
+                .pagination[data-astro-cid-4b74ji4i] a[data-astro-cid-4b74ji4i] {
+                    transition: opacity .2s
+                }
+
+                .pagination[data-astro-cid-4b74ji4i] a[data-covered] {
+                    opacity: .15;
+                    pointer-events: none
+                }
+
+                body:has(.pagination a) .note-tags {
+                    bottom: 4.5rem
+                }
+
+                body:has(.pagination a) .sidebar {
+                    max-height: calc(100dvh - 7rem)
+                }
             }
 
             .pagination[data-astro-cid-4b74ji4i] a[data-astro-cid-4b74ji4i] {
@@ -3023,7 +3158,7 @@
                     {/block:Description}
                 </header>
             {/block:IndexPage}
-            {block:Posts}<article id="post-{PostID}" class="post" data-rail="{Year}-{MonthNumberWithZero}-{DayOfMonthWithZero}{block:NoteCount} · {NoteCountWithLabel}{/block:NoteCount}" data-astro-cid-ngnc2rhs>
+            {block:Posts}<article id="post-{PostID}" class="post" data-astro-cid-ngnc2rhs>
                     {block:HasTags}
                         <aside class="margin-note" aria-label="Tags">
                             <ol class="note-tags">
@@ -3033,6 +3168,21 @@
                             </ol>
                         </aside>
                     {/block:HasTags}
+                    <div class="post-meta" data-astro-cid-ngnc2rhs>
+                        {block:PinnedPostLabel}
+                            <p class="pinned" data-astro-cid-ngnc2rhs><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 9V4h1a1 1 0 0 0 0-2H7a1 1 0 0 0 0 2h1v5c0 1.66-1.34 3-3 3v2h5.97v7l1 1 1-1v-7H19v-2c-1.66 0-3-1.34-3-3z"/></svg>{PinnedPostLabel}</p>
+                        {/block:PinnedPostLabel}
+                        <div class="meta-row" data-astro-cid-ngnc2rhs>
+                            <a class="post-date" href="{Permalink}" data-astro-cid-ngnc2rhs>{DayOfMonth} {Month} {Year}</a>
+                            {block:RebloggedFrom}
+                                <span class="reblogged-from" data-astro-cid-ngnc2rhs>
+                                    <svg viewBox="0 0 24 24" role="img" aria-label="reblogged from"><path d="M4 9V7h12V4l4 4-4 4V9H4zm16 6v2H8v3l-4-4 4-4v3h12z"/></svg>
+                                    <a href="{ReblogParentURL}" data-astro-cid-ngnc2rhs><img src="{ReblogParentPortraitURL-48}" alt="" width="24" height="24" data-astro-cid-ngnc2rhs>{ReblogParentName}</a>
+                                </span>
+                            {/block:RebloggedFrom}
+                            <a class="on-tumblr" href="https://www.tumblr.com/{Name}/{PostID}" title="Open on tumblr.com" aria-label="Open on tumblr.com" data-astro-cid-ngnc2rhs><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42L17.59 5H14V3zM5 5h6v2H5v12h12v-6h2v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg></a>
+                        </div>
+                    </div>
                     <header class="front-matter" data-astro-cid-ngnc2rhs>
                         <div class="title-line" data-astro-cid-ngnc2rhs>
                             {block:Text}
@@ -3042,11 +3192,6 @@
                                     </h1>
                                 {/block:Title}
                             {/block:Text}
-                            {block:RebloggedFrom}
-                                <span class="author" data-astro-cid-ngnc2rhs>
-via <a href="{ReblogParentURL}" data-astro-cid-ngnc2rhs>{ReblogParentName}</a>
-                                </span>
-                            {/block:RebloggedFrom}
                         </div>
                     </header>
                     {block:Text}
@@ -3089,7 +3234,7 @@ via <a href="{ReblogParentURL}" data-astro-cid-ngnc2rhs>{ReblogParentName}</a>
                     {block:Audio}{AudioEmbed}{block:Caption}{Caption}{/block:Caption}
                     {/block:Audio}
                     <footer class="post-foot" data-astro-cid-ngnc2rhs>
-                        {block:IndexPage}<a href="{Permalink}" data-astro-cid-ngnc2rhs>Permalink</a>{/block:IndexPage}
+                        {block:NoteCount}<a class="note-count" href="{Permalink}" data-astro-cid-ngnc2rhs>{NoteCountWithLabel}</a>{/block:NoteCount}
                         {block:HasTags}
                             <span class="post-tags" data-astro-cid-ngnc2rhs>
                                 {block:Tags}
@@ -3097,6 +3242,7 @@ via <a href="{ReblogParentURL}" data-astro-cid-ngnc2rhs>{ReblogParentName}</a>
                                 {/block:Tags}
                             </span>
                         {/block:HasTags}
+                        <span class="post-actions" data-astro-cid-ngnc2rhs>{ReblogButton color="grey" size="20"}{LikeButton color="grey" size="20"}</span>
                     </footer>
                     {block:PermalinkPage}
                         {block:PostNotes}

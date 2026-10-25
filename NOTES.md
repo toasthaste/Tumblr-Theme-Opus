@@ -13,6 +13,11 @@ Remi's own Tumblr theme, started 2026-10-07 from a friend's theme (with her perm
 1. Claude edits `my-theme.html`, and tests in the local preview.
 2. Claude puts the file on the clipboard. Remi pastes it into **themes-test-blog** (Customize, then Edit HTML, then Ctrl+A, Ctrl+V, Save). Claude's simulated Ctrl+V does *not* paste into Tumblr's editor, so Remi does this step.
 3. The live blog can take a few minutes to update. To verify, Claude fetches https://themes-test-blog.tumblr.com/ and checks that each `<style>`/`<script>` block of `my-theme.html` appears in it verbatim.
+   **Since 2026-10-24, plain `curl` gets Tumblr's "Checking your browser..." bot page.** Don't try to get around it. Verify in the built-in browser instead:
+   - Inside the tab, `fetch(location.href)` returns the raw HTML.
+   - Tumblr now serves the CSS minified, so compare by content or behaviour, not verbatim.
+   - The page's CSP blocks posting it to localhost, and it's too big (about 330KB) to pass through chat.
+   - For CSS tweaks on new structure, inject a `<style>` into the live page in the browser pane and measure.
 4. After any change to the page *structure* (HTML or `{block:...}` tags), take a fresh snapshot: copy the live page to `preview/live-snapshot.html` and `my-theme.html` to `preview/snapshot-theme.html`.
 
 Tumblr refuses to save a theme containing a literal `http://` anywhere, even inside an inline SVG's `xmlns`. Write it as `http%3A//` in data URIs. Check before handing over: `grep -c "http://" my-theme.html` should print 0.
