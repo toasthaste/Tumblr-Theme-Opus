@@ -2819,12 +2819,33 @@
                 color: inherit
             }
 
+            /* each addition in a reblog chain gets a line above it */
             .trail[data-astro-cid-ngnc2rhs]+.trail[data-astro-cid-ngnc2rhs] {
-                margin-top: 1.5rem
+                margin-top: 1.25rem;
+                padding-top: 1.25rem;
+                border-top: 1px solid var(--color-border)
             }
 
             .trail[data-astro-cid-ngnc2rhs]>.author[data-astro-cid-ngnc2rhs] {
+                display: flex;
+                align-items: center;
+                gap: .6ch;
                 margin-bottom: .25rem
+            }
+
+            .trail[data-astro-cid-ngnc2rhs]>.author[data-astro-cid-ngnc2rhs] img {
+                width: 1.5rem;
+                height: 1.5rem;
+                border-radius: 50%
+            }
+
+            .trail[data-astro-cid-ngnc2rhs]>.author[data-astro-cid-ngnc2rhs] a {
+                text-decoration-line: none
+            }
+
+            .trail[data-astro-cid-ngnc2rhs]>.author[data-astro-cid-ngnc2rhs] a:hover {
+                color: var(--color-text);
+                text-decoration-line: underline
             }
 
             .chat[data-astro-cid-ngnc2rhs] dt[data-astro-cid-ngnc2rhs] {
@@ -2860,6 +2881,16 @@
                 align-items: center;
                 gap: .75rem;
                 margin-left: auto
+            }
+
+            /* (the like button's frame would otherwise sit on a text line
+               and make it taller than the reblog button) */
+            .post-actions[data-astro-cid-ngnc2rhs] iframe {
+                display: block
+            }
+
+            .note-count[data-astro-cid-ngnc2rhs]:empty:before {
+                content: "0 notes"
             }
 
             /* ---- The row at the top of each post: date (links to the
@@ -2900,6 +2931,21 @@
                 fill: currentColor
             }
 
+            .post-meta[data-astro-cid-ngnc2rhs] .reblog-icon {
+                width: 1.2em;
+                height: 1.2em;
+                fill: none;
+                stroke: currentColor;
+                stroke-width: 2;
+                stroke-linecap: round;
+                stroke-linejoin: round
+            }
+
+            /* the date sits at the right, next to the tumblr.com link */
+            .post-date[data-astro-cid-ngnc2rhs] {
+                margin-left: auto
+            }
+
             .reblogged-from[data-astro-cid-ngnc2rhs],
             .reblogged-from[data-astro-cid-ngnc2rhs] a {
                 display: inline-flex;
@@ -2915,7 +2961,6 @@
 
             .on-tumblr[data-astro-cid-ngnc2rhs] {
                 display: inline-flex;
-                margin-left: auto;
                 padding: .2rem
             }
 
@@ -3173,13 +3218,13 @@
                             <p class="pinned" data-astro-cid-ngnc2rhs><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 9V4h1a1 1 0 0 0 0-2H7a1 1 0 0 0 0 2h1v5c0 1.66-1.34 3-3 3v2h5.97v7l1 1 1-1v-7H19v-2c-1.66 0-3-1.34-3-3z"/></svg>{PinnedPostLabel}</p>
                         {/block:PinnedPostLabel}
                         <div class="meta-row" data-astro-cid-ngnc2rhs>
-                            <a class="post-date" href="{Permalink}" data-astro-cid-ngnc2rhs>{DayOfMonth} {Month} {Year}</a>
                             {block:RebloggedFrom}
                                 <span class="reblogged-from" data-astro-cid-ngnc2rhs>
-                                    <svg viewBox="0 0 24 24" role="img" aria-label="reblogged from"><path d="M4 9V7h12V4l4 4-4 4V9H4zm16 6v2H8v3l-4-4 4-4v3h12z"/></svg>
-                                    <a href="{ReblogParentURL}" data-astro-cid-ngnc2rhs><img src="{ReblogParentPortraitURL-48}" alt="" width="24" height="24" data-astro-cid-ngnc2rhs>{ReblogParentName}</a>
+                                    <svg class="reblog-icon" viewBox="0 0 24 24" role="img" aria-label="reblogged from"><path d="M4 12V9a3 3 0 0 1 3-3h12M16 3l3 3-3 3M20 12v3a3 3 0 0 1-3 3H5M8 21l-3-3 3-3"/></svg>
+                                    <a href="{ReblogParentURL}" data-astro-cid-ngnc2rhs><img src="{ReblogParentPortraitURL-64}" alt="" width="24" height="24" onerror="this.remove()" data-astro-cid-ngnc2rhs>{ReblogParentName}</a>
                                 </span>
                             {/block:RebloggedFrom}
+                            <a class="post-date" href="{Permalink}" data-astro-cid-ngnc2rhs>{DayOfMonth} {Month} {Year}</a>
                             <a class="on-tumblr" href="https://www.tumblr.com/{Name}/{PostID}" title="Open on tumblr.com" aria-label="Open on tumblr.com" data-astro-cid-ngnc2rhs><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42L17.59 5H14V3zM5 5h6v2H5v12h12v-6h2v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg></a>
                         </div>
                     </div>
@@ -3195,11 +3240,14 @@
                         </div>
                     </header>
                     {block:Text}
-                        {block:NotReblog}{Body}{/block:NotReblog}
+                        {block:NotReblog}
+                            <section class="trail" data-astro-cid-ngnc2rhs>
+                                <p class="author" data-astro-cid-ngnc2rhs><img src="{PortraitURL-64}" alt="" width="24" height="24" onerror="this.remove()" data-astro-cid-ngnc2rhs>{Name}</p> {Body} </section>
+                        {/block:NotReblog}
                         {block:RebloggedFrom}
                             {block:Reblogs}
                                 <section class="trail" data-astro-cid-ngnc2rhs>
-                                    <p class="author" data-astro-cid-ngnc2rhs>{Username}</p> {Body} </section>
+                                    <p class="author" data-astro-cid-ngnc2rhs><img src="https://api.tumblr.com/v2/blog/{Username}.tumblr.com/avatar/64" alt="" width="24" height="24" onerror="this.remove()" data-astro-cid-ngnc2rhs>{block:HasPermalink}<a href="{Permalink}" data-astro-cid-ngnc2rhs>{/block:HasPermalink}{Username}{block:HasPermalink}</a>{/block:HasPermalink}</p> {Body} </section>
                             {/block:Reblogs}
                         {/block:RebloggedFrom}
                     {/block:Text}
@@ -3234,7 +3282,7 @@
                     {block:Audio}{AudioEmbed}{block:Caption}{Caption}{/block:Caption}
                     {/block:Audio}
                     <footer class="post-foot" data-astro-cid-ngnc2rhs>
-                        {block:NoteCount}<a class="note-count" href="{Permalink}" data-astro-cid-ngnc2rhs>{NoteCountWithLabel}</a>{/block:NoteCount}
+                        <a class="note-count" href="{Permalink}" data-astro-cid-ngnc2rhs>{block:NoteCount}{NoteCountWithLabel}{/block:NoteCount}</a>
                         {block:HasTags}
                             <span class="post-tags" data-astro-cid-ngnc2rhs>
                                 {block:Tags}
