@@ -72,4 +72,7 @@ Built 2026-10-12/13, then shelved by Remi with a possible return later. Restore 
 This folder is a local git repo (set up 2026-10-12, branch `main`, nothing pushed anywhere). Remi doesn't use git; Claude does.
 - **Commit after each version Remi pastes and is happy with**, with a plain-English message saying what changed. Commit `NOTES.md` updates alongside.
 - Repo-local settings: `user.name Remi`, `user.email remi@local` (a placeholder, so no real email lands in history if it's ever pushed publicly), `core.autocrlf false` (keeps line endings exactly as written, which the verbatim live-page check relies on).
+- **GitHub backup** (since 2026-10-28): `git push origin main:theme-history --tags`, run when Remi asks.
+  - It goes to the **`theme-history` branch** of the public toasthaste/Tumblr-Theme-Opus repo. Remi chose to back up the full history.
+  - **Never push to that repo's `main`.** It holds the assets jsDelivr serves, and its layout differs: files at the root, not in `assets/`.
 - `.gitignore` skips the `upload batch`/`upload missing` folders and the generated `preview/index.html`.
